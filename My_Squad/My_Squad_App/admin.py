@@ -1,10 +1,17 @@
 from django.contrib import admin
 
-from .models import Team, Osoba, Stanowisko
+from .models import Team, Osoba, Stanowisko, Zawodnik, Druzyna, Trener, Mecz, StatystykiZawodnika, Trening
 
 admin.site.register(Team)
 admin.site.register(Osoba)
 admin.site.register(Stanowisko)
+admin.site.register(Zawodnik)
+admin.site.register(Druzyna)
+admin.site.register(Trener)
+admin.site.register(Mecz)
+admin.site.register(StatystykiZawodnika)
+admin.site.register(Trening)
+
 
 class OsobaAdmin(admin.ModelAdmin):
     @admin.display(description=" Stanowisko (ID)")
@@ -14,4 +21,3 @@ class OsobaAdmin(admin.ModelAdmin):
         return 'Brak stanowiska'
     list_display = ["imie", "nazwisko", "plec", "stanowisko_with_id", "data_dodania"]
 
-admin.site.register(Osoba, OsobaAdmin)

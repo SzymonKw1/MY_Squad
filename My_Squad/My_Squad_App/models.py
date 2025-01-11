@@ -48,3 +48,75 @@ class Stanowisko(models.Model):
     class Meta:
         verbose_name = "Stanowisko"
         verbose_name_plural = "Stanowiska"
+
+
+# Modele związane z funkcjonalnością MY_SQUAD
+class Zawodnik(models.Model):
+    imie = models.CharField(max_length=50)
+    nazwisko = models.CharField(max_length=50)
+    data_urodzenia = models.DateField()
+    pozycje_wybor = [
+        ('BR', 'Bramkarz'),
+        ('OB', 'Obrońca'),
+        ('PP', 'Pomocnik'),
+        ('NA', 'Napastnik'),
+    ]
+    pozycja = models.CharField(max_length=2, choices=pozycje_wybor)
+    druzyna = models.ForeignKey('Druzyna', on_delete=models.SET_NULL, null=True, blank=True, related_name='zawodnicy')
+    numer_koszulki = models.PositiveIntegerField()
+    narodowosc = models.CharField(max_length=50)
+    
+    def __str__(self):
+        return f"{self.imie} {self.nazwisko} ({self.pozycja})"
+
+class Druzyna(models.Model):
+    nazwa = models.CharField(max_length=100)
+    miasto = models.CharField(max_length=100)
+    stadion = models.CharField(max_length=100)
+    trener = models.OneToOneField('Trener', on_delete=models.SET_NULL, null=True, blank=True)
+    data_zalozenia = models.DateField()
+
+    def __str__(self):
+        return self.nazwa
+
+class Trener(models.Model):
+    imie = models.CharField(max_length=50)
+    nazwisko = models.CharField(max_length=50)
+    data_urodzenia = models.DateField()
+    narodowosc = models.CharField(max_length=50)
+    lata_doswiadczenia = models.PositiveIntegerField()
+
+    def __str__(self):
+        return f"{self.imie} {self.nazwisko}"
+
+class Mecz(models.Model):
+    druzyna_gospodarz = models.ForeignKey('Druzyna', on_delete=models.CASCADE, related_name='mecze_gospodarz')
+    druzyna_gosc = models.ForeignKey('Druzyna', on_delete=models.CASCADE, related_name='mecze_gosc')
+    data = models.DateTimeField()
+    stadion = models.CharField(max_length=100)
+    wynik_gospodarz = models.PositiveIntegerField(default=0)
+    wynik_gosc = models.PositiveIntegerField(default=0)
+
+    def __str__(self):
+        return f"{self.druzyna_gospodarz} vs {self.druzyna_gosc} ({self.data})"
+
+class StatystykiZawodnika(models.Model):
+    mecz = models.ForeignKey('Mecz', on_delete=models.CASCADE, related_name='statystyki_zawodnikow')
+    zawodnik = models.ForeignKey('Zawodnik', on_delete=models.CASCADE, related_name='statystyki')
+    bramki = models.PositiveIntegerField(default=0)
+    asysty = models.PositiveIntegerField(default=0)
+    zolte_kartki = models.PositiveIntegerField(default=0)
+    czerwone_kartki = models.PositiveIntegerField(default=0)
+    minuty_na_boisku = models.PositiveIntegerField(default=0)
+
+    def __str__(self):
+        return f"Statystyki {self.zawodnik} w meczu {self.mecz}"
+
+class Trening(models.Model):
+    druzyna = models.ForeignKey('Druzyna', on_delete=models.CASCADE, related_name='treningi')
+    data = models.DateField()
+    czas_trwania_minuty = models.PositiveIntegerField()
+    obszar_skupienia = models.CharField(max_length=100)
+
+    def __str__(self):
+        return f"Trening drużyny {self.druzyna} w dniu {self.data}"
