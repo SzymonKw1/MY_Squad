@@ -66,8 +66,14 @@ class Zawodnik(models.Model):
     numer_koszulki = models.PositiveIntegerField()
     narodowosc = models.CharField(max_length=50)
     
+    
     def __str__(self):
         return f"{self.imie} {self.nazwisko} ({self.pozycja})"
+    
+    class Meta:
+        verbose_name = "Zawodnik"
+        verbose_name_plural = "Zawodnicy"
+    
 
 class Druzyna(models.Model):
     nazwa = models.CharField(max_length=100)
@@ -78,6 +84,11 @@ class Druzyna(models.Model):
 
     def __str__(self):
         return self.nazwa
+    
+    class Meta:
+        verbose_name = "Drużyna"
+        verbose_name_plural = "Drużyny"
+
 
 class Trener(models.Model):
     imie = models.CharField(max_length=50)
@@ -88,6 +99,10 @@ class Trener(models.Model):
 
     def __str__(self):
         return f"{self.imie} {self.nazwisko}"
+    
+    class Meta:
+        verbose_name = "Trener"
+        verbose_name_plural = "Trenerzy"
 
 class Mecz(models.Model):
     druzyna_gospodarz = models.ForeignKey('Druzyna', on_delete=models.CASCADE, related_name='mecze_gospodarz')
@@ -99,6 +114,10 @@ class Mecz(models.Model):
 
     def __str__(self):
         return f"{self.druzyna_gospodarz} vs {self.druzyna_gosc} ({self.data})"
+    
+    class Meta:
+        verbose_name = "Mecz"
+        verbose_name_plural = "Mecze"
 
 class StatystykiZawodnika(models.Model):
     mecz = models.ForeignKey('Mecz', on_delete=models.CASCADE, related_name='statystyki_zawodnikow')
@@ -111,6 +130,9 @@ class StatystykiZawodnika(models.Model):
 
     def __str__(self):
         return f"Statystyki {self.zawodnik} w meczu {self.mecz}"
+    
+    class Meta:
+        verbose_name_plural = "Statystyki"
 
 class Trening(models.Model):
     druzyna = models.ForeignKey('Druzyna', on_delete=models.CASCADE, related_name='treningi')
@@ -120,3 +142,7 @@ class Trening(models.Model):
 
     def __str__(self):
         return f"Trening drużyny {self.druzyna} w dniu {self.data}"
+    
+    class Meta:
+        verbose_name = "Trening"
+        verbose_name_plural = "Treningi"
