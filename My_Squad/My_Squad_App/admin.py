@@ -1,3 +1,4 @@
+from datetime import date
 from django.contrib import admin
 
 from .models import Team, Osoba, Stanowisko, Zawodnik, Druzyna, Trener, Mecz, StatystykiZawodnika, Trening
@@ -18,6 +19,7 @@ class ZawodnikAdmin(admin.ModelAdmin):
     list_filter = ('pozycja',)  
     search_fields = ('nazwisko',)  
     ordering = ['pozycja', 'nazwisko']  
+    
 
 
 

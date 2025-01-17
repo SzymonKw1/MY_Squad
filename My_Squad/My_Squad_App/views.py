@@ -2,51 +2,242 @@ from django.shortcuts import render
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from .models import Person, Team
+from .models import Team
 from rest_framework import serializers
-from .serializers import PersonSerializer
+
 
 # określamy dostępne metody żądania dla tego endpointu
-@api_view(['GET'])
-def person_list(request):
-    """
-    Lista wszystkich obiektów modelu Person.
-    """
+
+
+
+
+
+
+# DLa my_Squad
+from rest_framework import status
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from .models import Zawodnik, Druzyna, Trener, Trening, StatystykiZawodnika, Mecz
+from .serializers import ZawodnikSerializer, DruzynaSerializer, TrenerSerializer, TreningSerializer, StatystykiZawodnikaSerializer, MeczSerializer
+
+# Widok listy zawodników
+@api_view(['GET', 'POST'])
+def zawodnik_list(request):
     if request.method == 'GET':
-        persons = Person.objects.all()
-        serializer = PersonSerializer(persons, many=True)
+        zawodnicy = Zawodnik.objects.all()
+        serializer = ZawodnikSerializer(zawodnicy, many=True)
         return Response(serializer.data)
+    
+    elif request.method == 'POST':
+        serializer = ZawodnikSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-
+# Widok szczegółów zawodnika
 @api_view(['GET', 'PUT', 'DELETE'])
-def person_detail(request, pk):
-
-    """
-    :param request: obiekt DRF Request
-    :param pk: id obiektu Person
-    :return: Response (with status and/or object/s data)
-    """
+def zawodnik_detail(request, pk):
     try:
-        person = Person.objects.get(pk=pk)
-    except Person.DoesNotExist:
+        zawodnik = Zawodnik.objects.get(pk=pk)
+    except Zawodnik.DoesNotExist:
         return Response(status=status.HTTP_404_NOT_FOUND)
 
-    """
-    Zwraca pojedynczy obiekt typu Person.
-    """
     if request.method == 'GET':
-        person = Person.objects.get(pk=pk)
-        serializer = PersonSerializer(person)
+        serializer = ZawodnikSerializer(zawodnik)
         return Response(serializer.data)
 
     elif request.method == 'PUT':
-        serializer = PersonSerializer(person, data=request.data)
+        serializer = ZawodnikSerializer(zawodnik, data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     elif request.method == 'DELETE':
-        person.delete()
+        zawodnik.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+# Przykłady dla innych modeli
+
+@api_view(['GET', 'POST'])
+def druzyna_list(request):
+    if request.method == 'GET':
+        druzyny = Druzyna.objects.all()
+        serializer = DruzynaSerializer(druzyny, many=True)
+        return Response(serializer.data)
+    
+    elif request.method == 'POST':
+        serializer = DruzynaSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['GET', 'PUT', 'DELETE'])
+def druzyna_detail(request, pk):
+    try:
+        druzyna = Druzyna.objects.get(pk=pk)
+    except Druzyna.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+    if request.method == 'GET':
+        serializer = DruzynaSerializer(druzyna)
+        return Response(serializer.data)
+
+    elif request.method == 'PUT':
+        serializer = DruzynaSerializer(druzyna, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    elif request.method == 'DELETE':
+        druzyna.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+@api_view(['GET', 'POST'])
+def trener_list(request):
+    if request.method == 'GET':
+        trenerzy = Trener.objects.all()
+        serializer = TrenerSerializer(trenerzy, many=True)
+        return Response(serializer.data)
+    
+    elif request.method == 'POST':
+        serializer = TrenerSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+@api_view(['GET', 'PUT', 'DELETE'])
+def trener_detail(request, pk):
+    try:
+        trener = Trener.objects.get(pk=pk)
+    except Trener.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+    if request.method == 'GET':
+        serializer = TrenerSerializer(trener)
+        return Response(serializer.data)
+
+    elif request.method == 'PUT':
+        serializer = TrenerSerializer(trener, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    elif request.method == 'DELETE':
+        trener.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+@api_view(['GET', 'POST'])
+def trening_list(request):
+    if request.method == 'GET':
+        treningi = Trening.objects.all()
+        serializer = TreningSerializer(treningi, many=True)
+        return Response(serializer.data)
+    
+    elif request.method == 'POST':
+        serializer = TreningSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['GET', 'PUT', 'DELETE'])
+def trening_detail(request, pk):
+    try:
+        trening = Trening.objects.get(pk=pk)
+    except Trening.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+    if request.method == 'GET':
+        serializer = TreningSerializer(trening)
+        return Response(serializer.data)
+
+    elif request.method == 'PUT':
+        serializer = TreningSerializer(trening, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    elif request.method == 'DELETE':
+        trening.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+@api_view(['GET', 'POST'])
+def statystyki_zawodnika_list(request):
+    if request.method == 'GET':
+        statystyki = StatystykiZawodnika.objects.all()
+        serializer = StatystykiZawodnikaSerializer(statystyki, many=True)
+        return Response(serializer.data)
+    
+    elif request.method == 'POST':
+        serializer = StatystykiZawodnikaSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['GET', 'PUT', 'DELETE'])
+def statystyki_zawodnika_detail(request, pk):
+    try:
+        statystyki = StatystykiZawodnika.objects.get(pk=pk)
+    except StatystykiZawodnika.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+    if request.method == 'GET':
+        serializer = StatystykiZawodnikaSerializer(statystyki)
+        return Response(serializer.data)
+
+    elif request.method == 'PUT':
+        serializer = StatystykiZawodnikaSerializer(statystyki, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    elif request.method == 'DELETE':
+        statystyki.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+@api_view(['GET', 'POST'])
+def mecz_list(request):
+    if request.method == 'GET':
+        mecze = Mecz.objects.all()
+        serializer = MeczSerializer(mecze, many=True)
+        return Response(serializer.data)
+    
+    elif request.method == 'POST':
+        serializer = MeczSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['GET', 'PUT', 'DELETE'])
+def mecz_detail(request, pk):
+    try:
+        mecz = Mecz.objects.get(pk=pk)
+    except Mecz.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+    if request.method == 'GET':
+        serializer = MeczSerializer(mecz)
+        return Response(serializer.data)
+
+    elif request.method == 'PUT':
+        serializer = MeczSerializer(mecz, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    elif request.method == 'DELETE':
+        mecz.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
 
