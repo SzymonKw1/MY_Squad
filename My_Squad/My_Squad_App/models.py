@@ -1,20 +1,11 @@
 from django.db import models
 from datetime import date
 from django.core.validators import MinValueValidator, MaxValueValidator
+from django.forms import ValidationError
 
 MONTHS = models.IntegerChoices('Miesiace', 'Styczeń Luty Marzec Kwiecień Maj Czerwiec Lipiec Sierpień Wrzesień Październik Listopad Grudzień')
 PLCIE = models.IntegerChoices('PLEC', 'Kobieta Mężczyzna Inna')
 
-class Team(models.Model):
-    name = models.CharField(max_length=60)
-    country = models.CharField(max_length=2)
-
-    def __str__(self):
-        return f"{self.name}"
-    
-    class Meta:
-        verbose_name = "Klub"
-        verbose_name_plural = "Kluby"
 
 class Osoba(models.Model):
     PLEC_CHOICES = (
@@ -27,7 +18,6 @@ class Osoba(models.Model):
     nazwisko = models.CharField(max_length=60, blank = False, null = False)
     plec = models.IntegerField(choices=PLCIE.choices, default=PLCIE.choices[2][0])
     stanowisko = models.ForeignKey('Stanowisko', on_delete = models.CASCADE)
-    team = models.ForeignKey(Team, null=True, blank=True, on_delete=models.SET_NULL)
     country = models.CharField(max_length=3, blank = False, default='', null = False)
     data_dodania = models.DateField(default = date.today, blank=False, null=False)
     
@@ -121,6 +111,9 @@ class Mecz(models.Model):
 
     def __str__(self):
         return f"{self.druzyna_gospodarz} vs {self.druzyna_gosc} ({self.data})"
+    def clean(self):
+        if self.druzyna_gospodarz == self.druzyna_gosc:
+            raise ValidationError("Drużyna gospodarzy i drużyna gości nie mogą być takie same.")
     
     class Meta:
         verbose_name = "Mecz"
@@ -131,9 +124,9 @@ class StatystykiZawodnika(models.Model):
     zawodnik = models.ForeignKey('Zawodnik', on_delete=models.CASCADE, related_name='statystyki')
     bramki = models.PositiveIntegerField(default=0)
     asysty = models.PositiveIntegerField(default=0)
-    zolte_kartki = models.PositiveIntegerField(default=0)
-    czerwone_kartki = models.PositiveIntegerField(default=0)
-    minuty_na_boisku = models.PositiveIntegerField(default=0)
+    zolte_kartki = models.PositiveIntegerField(default=0, validators=[MaxValueValidator(2)])
+    czerwone_kartki = models.PositiveIntegerField(default=0, validators=[MaxValueValidator(1)])
+    minuty_na_boisku = models.PositiveIntegerField(default=0, validators=[MaxValueValidator(120)])
 
     def __str__(self):
         return f"Statystyki {self.zawodnik} w meczu {self.mecz}"
