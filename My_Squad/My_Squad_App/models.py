@@ -1,5 +1,6 @@
 from django.db import models
 from datetime import date
+from django.core.validators import MinValueValidator, MaxValueValidator
 
 MONTHS = models.IntegerChoices('Miesiace', 'Styczeń Luty Marzec Kwiecień Maj Czerwiec Lipiec Sierpień Wrzesień Październik Listopad Grudzień')
 PLCIE = models.IntegerChoices('PLEC', 'Kobieta Mężczyzna Inna')
@@ -73,6 +74,7 @@ class Zawodnik(models.Model):
     class Meta:
         verbose_name = "Zawodnik"
         verbose_name_plural = "Zawodnicy"
+        ordering = ['pozycja', 'nazwisko' ]
     
 
 class Druzyna(models.Model):
@@ -80,7 +82,12 @@ class Druzyna(models.Model):
     miasto = models.CharField(max_length=100)
     stadion = models.CharField(max_length=100)
     trener = models.OneToOneField('Trener', on_delete=models.SET_NULL, null=True, blank=True)
-    data_zalozenia = models.DateField()
+    rok_zalozenia = models.IntegerField(
+        validators=[
+            MinValueValidator(1800),  
+            MaxValueValidator(date.today().year)  
+        ]
+    )
 
     def __str__(self):
         return self.nazwa
