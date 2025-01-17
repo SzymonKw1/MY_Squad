@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from rest_framework import serializers
 
 
-# określamy dostępne metody żądania dla tego endpointu
+
 
 
 
@@ -18,14 +18,21 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from .models import Zawodnik, Druzyna, Trener, Trening, StatystykiZawodnika, Mecz
 from .serializers import ZawodnikSerializer, DruzynaSerializer, TrenerSerializer, TreningSerializer, StatystykiZawodnikaSerializer, MeczSerializer
+from rest_framework.pagination import PageNumberPagination
 
-# Widok listy zawodników
-@api_view(['GET', 'POST'])
+#paginacja paparapapap - działa już :))))
+class ZawodnikPagination(PageNumberPagination):
+    page_size = 6
+    page_size_query_param = 'page_size'  #- Można sobie zmienić wyświetlanie ilości rekordów (defaultowo będzie 6, maksymalnie 20)
+    max_page_size = 20
+@api_view(['GET', 'POST'])  
 def zawodnik_list(request):
     if request.method == 'GET':
         zawodnicy = Zawodnik.objects.all()
-        serializer = ZawodnikSerializer(zawodnicy, many=True)
-        return Response(serializer.data)
+        paginator = ZawodnikPagination()
+        result_page = paginator.paginate_queryset(zawodnicy, request)  
+        serializer = ZawodnikSerializer(result_page, many=True)
+        return paginator.get_paginated_response(serializer.data)
     
     elif request.method == 'POST':
         serializer = ZawodnikSerializer(data=request.data)
@@ -34,7 +41,7 @@ def zawodnik_list(request):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-# Widok szczegółów zawodnika
+
 @api_view(['GET', 'PUT', 'DELETE'])
 def zawodnik_detail(request, pk):
     try:
@@ -56,8 +63,6 @@ def zawodnik_detail(request, pk):
     elif request.method == 'DELETE':
         zawodnik.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
-
-# Przykłady dla innych modeli
 
 @api_view(['GET', 'POST'])
 def druzyna_list(request):

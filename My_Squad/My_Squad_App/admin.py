@@ -15,14 +15,16 @@ admin.site.register(Stanowisko)
 @admin.register(Zawodnik)
 class ZawodnikAdmin(admin.ModelAdmin):
     list_display = ('nazwisko', 'pozycja', 'numer_koszulki', 'druzyna' )  
-    list_filter = ('pozycja',)  
+    list_filter = ('pozycja', 'druzyna',)  
     search_fields = ('nazwisko',)  
     ordering = ['pozycja', 'nazwisko']  
+    list_per_page = 20
     
 @admin.register(StatystykiZawodnika)
 class StatystykiZawodnikaAdmin(admin.ModelAdmin):
     # Wyświetlanie wszystkich pól w liście
     list_display = ('zawodnik', 'mecz', 'bramki', 'asysty', 'zolte_kartki', 'czerwone_kartki', 'minuty_na_boisku')
+    
 
 @admin.register(Druzyna)
 class DruzynaAdmin(admin.ModelAdmin):

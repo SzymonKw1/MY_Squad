@@ -56,6 +56,9 @@ class Zawodnik(models.Model):
     druzyna = models.ForeignKey('Druzyna', on_delete=models.SET_NULL, null=True, blank=True, related_name='zawodnicy')
     numer_koszulki = models.PositiveIntegerField()
     narodowosc = models.CharField(max_length=50)
+    def clean(self):
+        if Zawodnik.objects.filter(druzyna=self.druzyna, numer_koszulki=self.numer_koszulki).exclude(id=self.id).exists():
+            raise ValidationError(f"Numer koszulki {self.numer_koszulki} już istnieje w tej drużynie.")
     
     
     def __str__(self):
@@ -127,6 +130,19 @@ class StatystykiZawodnika(models.Model):
     zolte_kartki = models.PositiveIntegerField(default=0, validators=[MaxValueValidator(2)])
     czerwone_kartki = models.PositiveIntegerField(default=0, validators=[MaxValueValidator(1)])
     minuty_na_boisku = models.PositiveIntegerField(default=0, validators=[MaxValueValidator(120)])
+    def clean(self):
+        wynik_meczu = self.mecz.wynik_gospodarz + self.mecz.wynik_gosc
+        if self.bramki > wynik_meczu:
+            raise ValidationError(f"Zawodnik nie może strzelić więcej bramek ({self.bramki}) niż wynosi suma bramek meczu ({wynik_meczu}).")
+        if self.zawodnik.druzyna == self.mecz.druzyna_gospodarz:
+            druzyna_bramki = self.mecz.wynik_gospodarz
+        elif self.zawodnik.druzyna == self.mecz.druzyna_gosc:
+            druzyna_bramki = self.mecz.wynik_gosc
+        else:
+            raise ValidationError("Zawodnik nie należy do żadnej z drużyn w tym meczu.")
+
+        if self.bramki > druzyna_bramki:
+            raise ValidationError(f"Zawodnik nie może strzelić więcej bramek ({self.bramki}) niż jego drużyna ({druzyna_bramki}).")
 
     def __str__(self):
         return f"Statystyki {self.zawodnik} w meczu {self.mecz}"
