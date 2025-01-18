@@ -1,10 +1,8 @@
 from datetime import date
 from django.contrib import admin
 
-from .models import Osoba, Stanowisko, Zawodnik, Druzyna, Trener, Mecz, StatystykiZawodnika, Trening
+from .models import Zawodnik, Druzyna, Trener, Mecz, StatystykiZawodnika, Trening
 
-admin.site.register(Osoba)
-admin.site.register(Stanowisko)
 #usunąłem stąd zawodnika
 #usunałem drużyna
 #usunalem trenera

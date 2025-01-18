@@ -245,3 +245,25 @@ def mecz_detail(request, pk):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
+#Nowy endpointy, wychodzący poza schemat CRUD- Wszystkie działają (pozycja musi być wpisywana skrótem tj. BR, OB, PP, NA)
+@api_view(['GET'])
+def Zawodnik_na_litere(request, litera):
+    zawodnicy = Zawodnik.objects.filter(imie__istartswith= litera)
+    if not zawodnicy.exists():
+        return Response( "Nie istnieją zawodnicy, których imię zaczyna się na podaną literę. Spróbuj innej :D")  
+    serializer = ZawodnikSerializer(zawodnicy, many=True)
+    return Response(serializer.data)
+
+@api_view(['GET'])
+def zawodnik_po_narodowosci(request, narodowosc):
+    zawodnicy = Zawodnik.objects.filter(narodowosc__iexact= narodowosc)
+    if not zawodnicy.exists():
+         return Response("Nie ma zawodników o podanej narodowości, spróbuj innej :D")
+    serializer = ZawodnikSerializer(zawodnicy, many=True)
+    return Response(serializer.data)
+
+@api_view(['GET'])
+def zawodnik_po_pozycji(request, pozycja):
+    zawodnicy = Zawodnik.objects.filter(pozycja__iexact=pozycja)
+    serializer = ZawodnikSerializer(zawodnicy, many=True)
+    return Response(serializer.data)

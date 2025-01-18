@@ -15,4 +15,7 @@ urlpatterns = [
     path('statystyki_zawodnikow/<int:pk>/', views.statystyki_zawodnika_detail),
     path('mecze/', views.mecz_list),
     path('mecze/<int:pk>/', views.mecz_detail),
+    path('zawodnicy/starts-with/<str:letter>/', views.Zawodnik_na_litere),
+    path('zawodnicy/narodowosc/<str:narodowosc>/', views.zawodnik_po_narodowosci),
+    path('zawodnicy/pozycja/<str:pozycja>/', views.zawodnik_po_pozycji),
 ]
