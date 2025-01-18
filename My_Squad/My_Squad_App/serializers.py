@@ -1,6 +1,42 @@
 from datetime import date
 from rest_framework import serializers
 from .models import  Zawodnik, Druzyna, Trener, Mecz, StatystykiZawodnika, Trening
+from django.contrib.auth.models import User 
+#Rejestracja użytkownika
+class RejestracjaSerializer(serializers.ModelSerializer):
+    haslo = serializers.CharField(write_only=True, min_length=8)
+
+    class Meta:
+        model = User
+        fields = ['username', 'haslo', 'email']
+        extra_kwargs = {
+            'haslo': {
+                'write_only': True,
+                'style': {'input_type': 'password'}
+                }
+            }
+    def validate_haslo(self, value):
+        # Sprawdzanie, czy hasło zawiera co najmniej jedną dużą literę
+        if not any(char.isupper() for char in value):
+            raise serializers.ValidationError("Hasło musi zawierac co najmniej jedna wielką literę.")
+        # Sprawdzanie, czy hasło zawiera co najmniej jeden znak specjalny
+        specjalne_znaki = ['!', '@', '#', '$', '%', '^', '&', '*', ',', '.', '?', ':', '"', '{', '}', '<', '>', '-', '_', '=', '+', ';', '~', '`']
+        if not any(char in specjalne_znaki for char in value):
+            raise serializers.ValidationError("Hasło musi zawierać co najmniej jeden znak specjalny.")
+        return value
+    def validate_email(self, value):
+        if User.objects.filter(email=value).exists():
+            raise serializers.ValidationError("Użytkownik z takim emialem już istnieje.")
+        return value
+    def create(self, validated_data):
+        user = User(email=validated_data['email'], username=validated_data['username'])
+        user.set_password(validated_data['haslo'])
+        user.save()
+        return user
+    #Działa w Api view, trzeba wpisywac JSON-em
+
+
+
 
 # serializery z Mysquad
 class ZawodnikSerializer(serializers.Serializer):

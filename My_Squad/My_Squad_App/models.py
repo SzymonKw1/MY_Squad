@@ -123,3 +123,4 @@ class Trening(models.Model):
     class Meta:
         verbose_name = "Trening"
         verbose_name_plural = "Treningi"
+

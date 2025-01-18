@@ -18,4 +18,5 @@ urlpatterns = [
     path('zawodnicy/starts-with/<str:letter>/', views.Zawodnik_na_litere),
     path('zawodnicy/narodowosc/<str:narodowosc>/', views.zawodnik_po_narodowosci),
     path('zawodnicy/pozycja/<str:pozycja>/', views.zawodnik_po_pozycji),
+    path('rejestracja/', views.Rejestracja_uzytkownika),
 ]
