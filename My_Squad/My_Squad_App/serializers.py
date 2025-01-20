@@ -1,7 +1,11 @@
 from datetime import date
 from rest_framework import serializers
 from .models import  Zawodnik, Druzyna, Trener, Mecz, StatystykiZawodnika, Trening
-from django.contrib.auth.models import User 
+from django.contrib.auth.models import User
+from rest_framework.authentication import TokenAuthentication
+from rest_framework.authtoken.models import Token
+from django.contrib.auth import authenticate
+
 #Rejestracja użytkownika
 class RejestracjaSerializer(serializers.ModelSerializer):
     haslo = serializers.CharField(write_only=True, min_length=8)
@@ -32,6 +36,7 @@ class RejestracjaSerializer(serializers.ModelSerializer):
         user = User(email=validated_data['email'], username=validated_data['username'])
         user.set_password(validated_data['haslo'])
         user.save()
+        token, created = Token.objects.get_or_create(user = user)
         return user
     #Działa w Api view, trzeba wpisywac JSON-em
 

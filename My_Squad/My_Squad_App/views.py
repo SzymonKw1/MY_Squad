@@ -3,7 +3,7 @@ from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import serializers
-
+from rest_framework.authtoken.models import Token
 
 
 
@@ -20,6 +20,12 @@ from .models import Zawodnik, Druzyna, Trener, Trening, StatystykiZawodnika, Mec
 from .serializers import RejestracjaSerializer, ZawodnikSerializer, DruzynaSerializer, TrenerSerializer, TreningSerializer, StatystykiZawodnikaSerializer, MeczSerializer
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated, BasePermission, SAFE_METHODS, IsAdminUser, IsAuthenticatedOrReadOnly, AllowAny
+from django.shortcuts import render
+from django.http import HttpResponse
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import permission_required
+
+
 #paginacja paparapapap - działa już :))))
 class ZawodnikPagination(PageNumberPagination):
     page_size = 6
@@ -43,6 +49,8 @@ def zawodnik_list(request):
 
 
 @api_view(['GET', 'PUT', 'DELETE'])
+@permission_required('is_staff', raise_exception=True)
+# def admin_view(request):
 def zawodnik_detail(request, pk):
     try:
         zawodnik = Zawodnik.objects.get(pk=pk)
@@ -247,8 +255,8 @@ def mecz_detail(request, pk):
 
 #Nowy endpointy, wychodzący poza schemat CRUD- Wszystkie działają (pozycja musi być wpisywana skrótem tj. BR, OB, PP, NA)
 @api_view(['GET'])
-def Zawodnik_na_litere(request, litera):
-    zawodnicy = Zawodnik.objects.filter(imie__istartswith= litera)
+def Zawodnik_na_litere(request, letter):
+    zawodnicy = Zawodnik.objects.filter(imie__istartswith= letter)
     if not zawodnicy.exists():
         return Response( "Nie istnieją zawodnicy, których imię zaczyna się na podaną literę. Spróbuj innej :D")  
     serializer = ZawodnikSerializer(zawodnicy, many=True)
@@ -274,5 +282,14 @@ def Rejestracja_uzytkownika(request):
     serializer = RejestracjaSerializer(data=request.data)
     if serializer.is_valid():
         user = serializer.save()
-        return Response( "Użytkownik został pomyślnie zarejestrowany!", status=status.HTTP_201_CREATED)
+        token, _ = Token.objects.get_or_create(user=user)
+        
+        return Response(
+            {
+                "message": "Użytkownik został pomyślnie zarejestrowany!",
+                "token": token.key,
+            },
+            status=status.HTTP_201_CREATED,)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
