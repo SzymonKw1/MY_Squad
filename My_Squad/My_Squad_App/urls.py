@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.urls import path, include
 from . import views
+from .views import CustomAuthToken
 
 urlpatterns = [
     path('zawodnicy/', views.zawodnik_list),
@@ -19,4 +20,7 @@ urlpatterns = [
     path('zawodnicy/narodowosc/<str:narodowosc>/', views.zawodnik_po_narodowosci),
     path('zawodnicy/pozycja/<str:pozycja>/', views.zawodnik_po_pozycji),
     path('rejestracja/', views.Rejestracja_uzytkownika),
+    path('mecze/<int:mecz_id>/strzelcy-bramek/', views.strzelcy_bramek, name='strzelcy_bramek'),
+    path('api/login/', CustomAuthToken.as_view()),
+    path('sprawdz-uprawnienia/', views.sprawdz_uprawnienia),
 ]

@@ -5,13 +5,6 @@ from rest_framework.response import Response
 from rest_framework import serializers
 from rest_framework.authtoken.models import Token
 
-
-
-
-
-
-
-
 # DLa my_Squad
 from rest_framework import status
 from rest_framework.decorators import api_view
@@ -24,6 +17,9 @@ from django.shortcuts import render
 from django.http import HttpResponse
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.decorators import permission_required
+from rest_framework.decorators import api_view, permission_classes
+
+from .permissions import IsSuperuser, IsAuthenticated
 
 
 #paginacja paparapapap - działa już :))))
@@ -32,6 +28,7 @@ class ZawodnikPagination(PageNumberPagination):
     page_size_query_param = 'page_size'  #- Można sobie zmienić wyświetlanie ilości rekordów (defaultowo będzie 6, maksymalnie 20)
     max_page_size = 20
 @api_view(['GET', 'POST'])  
+@permission_classes([IsAuthenticated])
 def zawodnik_list(request):
     if request.method == 'GET':
         zawodnicy = Zawodnik.objects.all()
@@ -145,7 +142,11 @@ def trener_detail(request, pk):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 @api_view(['GET', 'POST'])
+@permission_classes([IsSuperuser])
 def trening_list(request):
+    print(f"Użytkownik: {request.user}")  # Wyświetli zalogowanego użytkownika
+    print(f"Czy superuser: {request.user.is_superuser}")
+    print(f"Nagłówki: {request.headers}")
     if request.method == 'GET':
         treningi = Trening.objects.all()
         serializer = TreningSerializer(treningi, many=True)
@@ -159,6 +160,7 @@ def trening_list(request):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['GET', 'PUT', 'DELETE'])
+@permission_classes([IsSuperuser])
 def trening_detail(request, pk):
     try:
         trening = Trening.objects.get(pk=pk)
@@ -293,3 +295,46 @@ def Rejestracja_uzytkownika(request):
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+#endpoint z bramkami 
+@api_view(['GET'])
+def strzelcy_bramek(request, mecz_id):
+    try:
+        mecz = Mecz.objects.get(pk=mecz_id)
+    except Mecz.DoesNotExist:
+        return Response({"error": "Mecz nie istnieje"}, status=404)
+
+    statystyki = StatystykiZawodnika.objects.filter(mecz=mecz, bramki__gt=0)
+    response_data = [
+        {
+            "zawodnik": f"{stat.zawodnik.imie} {stat.zawodnik.nazwisko}",
+            "druzyna": stat.zawodnik.druzyna.nazwa if stat.zawodnik.druzyna else "Brak drużyny",
+            "liczba_bramek": stat.bramki
+        }
+        for stat in statystyki
+    ]
+    return Response(response_data)
+
+
+from rest_framework.authtoken.views import ObtainAuthToken
+class CustomAuthToken(ObtainAuthToken):
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.validated_data['user']
+        token, created = Token.objects.get_or_create(user=user)
+        return Response({
+            'token': token.key,
+            'user_id': user.id,
+            'username': user.username
+        })
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def sprawdz_uprawnienia(request):
+    return Response({
+        "username": request.user.username,
+        "is_superuser": request.user.is_superuser,
+        "is_staff": request.user.is_staff,
+        "permissions": list(request.user.get_all_permissions()),  # Wszystkie uprawnienia użytkownika
+    })
