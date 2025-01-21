@@ -1,10 +1,12 @@
 from datetime import date
 from rest_framework import serializers
-from .models import  Zawodnik, Druzyna, Trener, Mecz, StatystykiZawodnika, Trening
+from .models import  Zawodnik, Druzyna, Trener, Mecz, StatystykiZawodnika, Trening, pozycje_wybor
 from django.contrib.auth.models import User
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.authtoken.models import Token
 from django.contrib.auth import authenticate
+from django.core.validators import MinValueValidator, MaxValueValidator
+from django.forms import ValidationError
 
 #Rejestracja użytkownika
 class RejestracjaSerializer(serializers.ModelSerializer):
@@ -49,10 +51,26 @@ class ZawodnikSerializer(serializers.Serializer):
     imie = serializers.CharField(max_length=50, required=True)
     nazwisko = serializers.CharField(max_length=80, required=True)
     data_urodzenia = serializers.DateField(required=True)
-    pozycja = serializers.ChoiceField(choices='pozycje_wybor' , required=True)
+    pozycja = serializers.ChoiceField(choices= pozycje_wybor, required=True)
     numer_koszulki = serializers.IntegerField(required=True)
     narodowosc = serializers.CharField(max_length=50, required=True)
     druzyna = serializers.PrimaryKeyRelatedField(queryset=Druzyna.objects.all(), required=False)
+    def validate_data_urodzenia(self, value):  
+        today = date.today()  
+        min_birth_date = today.replace(year=today.year - 15) 
+        if value > min_birth_date:  
+            raise serializers.ValidationError("Zawodnik jest za młody. Musi mieć co najmniej 15 lat.")  
+        return value
+    def validate(self, attrs):  # NOWE
+        druzyna = attrs.get('druzyna')
+        numer_koszulki = attrs.get('numer_koszulki')
+        if druzyna and Zawodnik.objects.filter(druzyna=druzyna, numer_koszulki=numer_koszulki).exists():
+            raise serializers.ValidationError(
+                f"Numer koszulki {numer_koszulki} już istnieje w tej drużynie."
+            )
+        return attrs 
+    
+    
 
 
     def create(self, validated_data):
@@ -70,6 +88,12 @@ class ZawodnikSerializer(serializers.Serializer):
         return instance
    
 class DruzynaSerializer(serializers.ModelSerializer):
+    def validate_rok_zalozenia(self, value):  # NOWE
+        if value < 1800 or value > date.today().year:
+            raise serializers.ValidationError(
+                f"Rok założenia musi być między 1800 a {date.today().year}."
+            )
+        return value 
     class Meta:
         model = Druzyna
         fields = [
@@ -79,6 +103,12 @@ class DruzynaSerializer(serializers.ModelSerializer):
         read_only_fields = ['id']
 
 class TrenerSerializer(serializers.ModelSerializer):
+    def validate_data_urodzenia(self, value): 
+        today = date.today()  
+        min_birth_date = today.replace(year=today.year - 18) 
+        if value > min_birth_date:  
+            raise serializers.ValidationError("Trener jest za młody. Musi mieć co najmniej 18 lat.")  # NOWE
+        return value  
     class Meta:
         model = Trener
         fields = [
@@ -88,6 +118,14 @@ class TrenerSerializer(serializers.ModelSerializer):
         read_only_fields = ['id']
 
 class MeczSerializer(serializers.ModelSerializer):
+    def validate(self, attrs):  # NOWE
+        druzyna_gospodarz = attrs.get('druzyna_gospodarz')
+        druzyna_gosc = attrs.get('druzyna_gosc')
+        if druzyna_gospodarz == druzyna_gosc:
+            raise serializers.ValidationError(
+                "Drużyna gospodarzy i drużyna gości nie mogą być takie same."
+            )
+        return attrs
     class Meta:
         model = Mecz
         fields = [
@@ -97,6 +135,32 @@ class MeczSerializer(serializers.ModelSerializer):
         read_only_fields = ['id']
 
 class StatystykiZawodnikaSerializer(serializers.ModelSerializer):
+    def validate(self, attrs):  # NOWE
+        mecz = attrs.get('mecz')
+        zawodnik = attrs.get('zawodnik')
+        bramki = attrs.get('bramki')
+
+        wynik_meczu = mecz.wynik_gospodarz + mecz.wynik_gosc
+        if bramki > wynik_meczu:
+            raise serializers.ValidationError(
+                f"Zawodnik nie może strzelić więcej bramek ({bramki}) niż wynosi suma bramek meczu ({wynik_meczu})."
+            )
+
+        if zawodnik.druzyna == mecz.druzyna_gospodarz:
+            druzyna_bramki = mecz.wynik_gospodarz
+        elif zawodnik.druzyna == mecz.druzyna_gosc:
+            druzyna_bramki = mecz.wynik_gosc
+        else:
+            raise serializers.ValidationError(
+                "Zawodnik nie należy do żadnej z drużyn w tym meczu."
+            )
+
+        if bramki > druzyna_bramki:
+            raise serializers.ValidationError(
+                f"Zawodnik nie może strzelić więcej bramek ({bramki}) niż jego drużyna ({druzyna_bramki})."
+            )
+
+        return attrs  
     class Meta:
         model = StatystykiZawodnika
         fields = [
@@ -106,6 +170,12 @@ class StatystykiZawodnikaSerializer(serializers.ModelSerializer):
         read_only_fields = ['id']
 
 class TreningSerializer(serializers.ModelSerializer):
+    def validate_czas_trwania_minuty(self, value): 
+        if value > 240:
+            raise serializers.ValidationError(
+                "Czas trwania treningu nie może przekraczać 240 minut."
+            )
+        return value
     class Meta:
         model = Trening
         fields = [

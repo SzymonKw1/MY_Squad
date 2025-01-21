@@ -3,16 +3,21 @@ from datetime import date
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.forms import ValidationError
 
+def validate_data_urodzenia(value):
+    if value.year > 2010:
+        raise ValidationError("Zawodnik jest za młody. Data urodzenia musi być przed 2011 rokiem.")
+
+pozycje_wybor = (
+    ('BR', 'Bramkarz'),
+    ('OB', 'Obrońca'),
+    ('PP', 'Pomocnik'),
+    ('NA', 'Napastnik'),
+)
+
 class Zawodnik(models.Model):
     imie = models.CharField(max_length=50)
     nazwisko = models.CharField(max_length=50)
-    data_urodzenia = models.DateField()
-    pozycje_wybor = [
-        ('BR', 'Bramkarz'),
-        ('OB', 'Obrońca'),
-        ('PP', 'Pomocnik'),
-        ('NA', 'Napastnik'),
-    ]
+    data_urodzenia = models.DateField(validators=[validate_data_urodzenia])
     pozycja = models.CharField(max_length=2, choices=pozycje_wybor)
     druzyna = models.ForeignKey('Druzyna', on_delete=models.SET_NULL, null=True, blank=True, related_name='zawodnicy')
     numer_koszulki = models.PositiveIntegerField()
@@ -54,7 +59,7 @@ class Druzyna(models.Model):
 class Trener(models.Model):
     imie = models.CharField(max_length=50)
     nazwisko = models.CharField(max_length=50)
-    data_urodzenia = models.DateField()
+    data_urodzenia = models.DateField(validators=[validate_data_urodzenia])
     narodowosc = models.CharField(max_length=50)
     lata_doswiadczenia = models.PositiveIntegerField()
 
@@ -116,6 +121,13 @@ class Trening(models.Model):
     data = models.DateField()
     czas_trwania_minuty = models.PositiveIntegerField()
     obszar_skupienia = models.CharField(max_length=100)
+
+    def validate_czas_trwania_minuty(self, value): 
+        if value > 240:
+            raise ValidationError(
+                "Czas trwania treningu nie może przekraczać 240 minut."
+            )
+        return value
 
     def __str__(self):
         return f"Trening drużyny {self.druzyna} w dniu {self.data}"

@@ -1,6 +1,6 @@
 from rest_framework.permissions import BasePermission, SAFE_METHODS
 
-class IsSuperuser(BasePermission): #Tylko superuser ma dostep, czyl admin i Marcel
+class IsSuperuser(BasePermission): #Tylko superuser ma dostep, czyli admin i Marcel
     def has_permission(self, request, view):
         return request.user and request.user.is_superuser
 
