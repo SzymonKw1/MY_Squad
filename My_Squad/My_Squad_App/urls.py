@@ -23,4 +23,6 @@ urlpatterns = [
     path('mecze/<int:mecz_id>/strzelcy-bramek/', views.strzelcy_bramek, name='strzelcy_bramek'),
     path('api/login/', CustomAuthToken.as_view()),
     path('sprawdz-uprawnienia/', views.sprawdz_uprawnienia),
+    path('zawodnik/<int:pk>/delete/', views.zawodnik_detail_or_delete)
+
 ]

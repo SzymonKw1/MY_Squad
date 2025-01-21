@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import get_object_or_404, render
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -13,7 +13,7 @@ from .models import Zawodnik, Druzyna, Trener, Trening, StatystykiZawodnika, Mec
 from .serializers import RejestracjaSerializer, ZawodnikSerializer, DruzynaSerializer, TrenerSerializer, TreningSerializer, StatystykiZawodnikaSerializer, MeczSerializer
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated, BasePermission, SAFE_METHODS, IsAdminUser, IsAuthenticatedOrReadOnly, AllowAny
-from django.shortcuts import render
+from django.shortcuts import render, get_list_or_404
 from django.http import HttpResponse
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.decorators import permission_required
@@ -338,3 +338,18 @@ def sprawdz_uprawnienia(request):
         "is_staff": request.user.is_staff,
         "permissions": list(request.user.get_all_permissions()),  # Wszystkie uprawnienia użytkownika
     })
+
+
+@api_view(['GET', 'DELETE'])
+@permission_classes([IsAuthenticated])
+def zawodnik_detail_or_delete(request, pk):
+
+    zawodnik = get_object_or_404(Zawodnik, pk=pk)
+
+    if request.method == 'GET':
+        serializer = ZawodnikSerializer(zawodnik)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    elif request.method == 'DELETE':
+        zawodnik.delete()
+        return Response({"detail": "Zawodnik został pomyślnie usunięty."}, status=status.HTTP_204_NO_CONTENT)
